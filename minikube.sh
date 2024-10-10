@@ -8,32 +8,44 @@ check_distro() {
     if [ -f /etc/os-release ]; then
         . /etc/os-release
         DISTRO=$ID
+        PACKAGE_MANAGER=""
+        if [[ -x "$(command -v apt)" ]]; then
+            PACKAGE_MANAGER="apt"
+        elif [[ -x "$(command -v dnf)" ]]; then
+            PACKAGE_MANAGER="dnf"
+        elif [[ -x "$(command -v yum)" ]]; then
+            PACKAGE_MANAGER="yum"
+        else
+            echo "Unsupported package manager. Exiting."
+            exit 1
+        fi
     else
         echo "Unable to detect Linux distribution."
         exit 1
     fi
 }
 
+
 install_docker() {
     echo "Installing Docker..."
 
-    if [[ "$DISTRO" == "fedora" || "$DISTRO" == "rhel" ]]; then
-        sudo dnf install -y dnf-plugins-core
-        sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-        sudo dnf install -y docker-ce docker-ce-cli containerd.io
-        sudo systemctl start docker
-        sudo systemctl enable docker
-    elif [[ "$DISTRO" == "ubuntu" || "$DISTRO" == "debian" ]]; then
-        sudo apt-get update -y
-        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+    if [[ "$PACKAGE_MANAGER" == "apt-get" || "$PACKAGE_MANAGER" == "apt" ]]; then
+        sudo $PACKAGE_MANAGER update -y
+        sudo $PACKAGE_MANAGER install -y apt-transport-https ca-certificates curl software-properties-common
         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
         sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-        sudo apt-get update -y
-        sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+        sudo $PACKAGE_MANAGER update -y
+        sudo $PACKAGE_MANAGER install -y docker-ce docker-ce-cli containerd.io
+        sudo systemctl start docker
+        sudo systemctl enable docker
+    elif [[ "$PACKAGE_MANAGER" == "dnf" || "$PACKAGE_MANAGER" == "yum" ]]; then
+        sudo $PACKAGE_MANAGER install -y dnf-plugins-core
+        sudo $PACKAGE_MANAGER config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+        sudo $PACKAGE_MANAGER install -y docker-ce docker-ce-cli containerd.io
         sudo systemctl start docker
         sudo systemctl enable docker
     else
-        echo "Unsupported distribution."
+        echo "Unsupported package manager for Docker installation."
         exit 1
     fi
 }
@@ -49,7 +61,6 @@ install_minikube() {
     echo "Installing Minikube..."
     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
     sudo install minikube-linux-amd64 /usr/local/bin/minikube
-    rm minikube-linux-amd64
 }
 
 configure_minikube() {
@@ -89,5 +100,5 @@ main() {
     check_minikube_status
 }
 
+# Run the script
 main
-

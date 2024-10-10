@@ -5,3 +5,4 @@ feel free to costumize this script based on what you need and what you want to d
 
 
 Just set executable access for this script and run it.
+Also i decided to put a `pod.yaml` file for test after installation is completed. if it can be helpful use `kubectl apply -f pod.yaml`.

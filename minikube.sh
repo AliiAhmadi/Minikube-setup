@@ -91,7 +91,7 @@ clean_up() {
 
 start_minikube() {
     echo "Starting Minikube with Docker driver..."
-    minikube start --driver=docker --docker-opt="default-ulimit=nofile=65536:65536"
+    minikube start --driver=docker # The default driver
 }
 
 check_minikube_status() {

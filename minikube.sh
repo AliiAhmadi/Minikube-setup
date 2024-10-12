@@ -86,7 +86,7 @@ configure_minikube() {
 clean_up() {
     echo "Cleaning up Docker and Minikube..."
     minikube delete
-    docker system prune -a -f
+    docker system prune -f
 }
 
 start_minikube() {

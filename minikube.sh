@@ -27,40 +27,53 @@ check_distro() {
 
 
 install_docker() {
-    echo "Installing Docker..."
-
-    if [[ "$PACKAGE_MANAGER" == "apt-get" || "$PACKAGE_MANAGER" == "apt" ]]; then
-        sudo $PACKAGE_MANAGER update -y
-        sudo $PACKAGE_MANAGER install -y apt-transport-https ca-certificates curl software-properties-common
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-        sudo $PACKAGE_MANAGER update -y
-        sudo $PACKAGE_MANAGER install -y docker-ce docker-ce-cli containerd.io
-        sudo systemctl start docker
-        sudo systemctl enable docker
-    elif [[ "$PACKAGE_MANAGER" == "dnf" || "$PACKAGE_MANAGER" == "yum" ]]; then
-        sudo $PACKAGE_MANAGER install -y dnf-plugins-core
-        sudo $PACKAGE_MANAGER config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-        sudo $PACKAGE_MANAGER install -y docker-ce docker-ce-cli containerd.io
-        sudo systemctl start docker
-        sudo systemctl enable docker
+    if command -v docker >/dev/null; then
+        echo "Docker already installed."
     else
-        echo "Unsupported package manager for Docker installation."
-        exit 1
+        echo "Installing Docker..."
+
+        if [[ "$PACKAGE_MANAGER" == "apt-get" || "$PACKAGE_MANAGER" == "apt" ]]; then
+            sudo $PACKAGE_MANAGER update -y
+            sudo $PACKAGE_MANAGER install -y apt-transport-https ca-certificates curl software-properties-common
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+            sudo $PACKAGE_MANAGER update -y
+            sudo $PACKAGE_MANAGER install -y docker-ce docker-ce-cli containerd.io
+            sudo systemctl start docker
+            sudo systemctl enable docker
+        elif [[ "$PACKAGE_MANAGER" == "dnf" || "$PACKAGE_MANAGER" == "yum" ]]; then
+            sudo $PACKAGE_MANAGER install -y dnf-plugins-core
+            sudo $PACKAGE_MANAGER config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+            sudo $PACKAGE_MANAGER install -y docker-ce docker-ce-cli containerd.io
+            sudo systemctl start docker
+            sudo systemctl enable docker
+        else
+            echo "Unsupported package manager for Docker installation."
+            exit 1
+        fi
     fi
+    
 }
 
 install_kubectl() {
-    echo "Installing Kubectl..."
-    curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
-    chmod +x ./kubectl
-    sudo mv ./kubectl /usr/local/bin/kubectl
+    if command -v kubectl >/dev/null 2>&1; then
+        echo "Docker is already installed."
+    else
+        echo "Installing Kubectl..."
+        curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+    fi
 }
 
 install_minikube() {
-    echo "Installing Minikube..."
-    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-    sudo install minikube-linux-amd64 /usr/local/bin/minikube
+    if command -v minikube >/dev/null 2>&1; then
+        echo "Minikube already installed."
+    else
+        echo "Installing Minikube..."
+        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        sudo install minikube-linux-amd64 /usr/local/bin/minikube
+    fi
 }
 
 configure_minikube() {

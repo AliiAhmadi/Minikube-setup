@@ -91,7 +91,7 @@ clean_up() {
 
 start_minikube() {
     echo "Starting Minikube with Docker driver..."
-    minikube start --driver=docker # The default driver
+    minikube start --driver=docker --image-repository="mirror.gcr.io"# The default driver
 }
 
 check_minikube_status() {
